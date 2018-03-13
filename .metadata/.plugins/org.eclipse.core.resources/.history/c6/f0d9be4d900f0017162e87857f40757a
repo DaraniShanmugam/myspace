@@ -1,0 +1,81 @@
+package lib;
+
+import java.security.SecureRandom;
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
+
+import view.App;
+
+public class AESEncryption {
+	private String key;
+	private byte[] initVector;
+	String value;
+	public AESEncryption(){
+		key = App.sessionPass.substring(0, 15);
+		initVector=new byte[16];
+		SecureRandom random = new SecureRandom();
+        random.nextBytes(initVector);
+	}
+	
+	public AESEncryption(String iv) {
+		key = App.sessionPass.substring(0, 15);
+		initVector = Base64.getDecoder().decode(iv);
+	}
+	
+	public String getInitVector() {
+		return Base64.getEncoder().encodeToString(initVector);
+	}
+	
+	public void setValue(String val) {
+		value = val;
+	}
+	
+	public String getValue() {
+		return value;
+	}
+	public void encrypt() {
+        try {
+        	
+            IvParameterSpec iv = new IvParameterSpec(initVector);
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+
+            byte[] encrypted = cipher.doFinal(value.getBytes());
+            System.out.println("encrypted string: "
+                    + DatatypeConverter.printBase64Binary(encrypted));
+
+            
+            
+            value = DatatypeConverter.printBase64Binary(encrypted);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        
+    }
+
+    public void decrypt() {
+        try {
+        	IvParameterSpec iv = new IvParameterSpec(initVector);
+            
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+            byte[] original = cipher.doFinal(DatatypeConverter.parseBase64Binary(value));
+
+            value = new String(original);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        
+    }
+}

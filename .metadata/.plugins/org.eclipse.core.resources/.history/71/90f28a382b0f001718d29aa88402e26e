@@ -1,0 +1,289 @@
+package model;
+//import java.util.*;
+//import java.util.Date;
+import view.App;
+import lib.Note;
+import lib.ListItem;
+import java.sql.*;
+
+import lib.Database;
+import java.util.Date;
+public class NotesModel {
+	
+	public void insert(Note note)
+	{
+		//String arr[]=new String[100];
+		//System.out.println("insert into notes(null,'"+user_id+"',null,'"+content+"',null,now()')");
+		//int Id=id.setId();
+		int userId=note.getUserId();
+		String content=note.getContent();
+		ListItem[] list=note.getList();
+		String title=note.getTitle();
+		if (list==null)
+		{
+		try {
+			
+			App.database.executeUpdate("insert into notes values(null,'"+userId+"','"+title+"','"+content+"',null,now())");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		else
+		{
+			try {
+				App.database.executeUpdate("insert into notes values(null,'"+userId+"','"+title+"','"+content+"','list',now())");
+				App.database.execute("select last_insert_id()");
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			ResultSet result=App.database.fetchResult();
+			int noteId =0;
+			try {
+				while(result.next())
+				{
+					 try {
+						noteId=(result.getInt(1));
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(noteId != 0)
+				insertlist(list,noteId);
+		}
+	}
+		
+	
+	public void insertlist(ListItem[] list,int noteId)
+	{
+		 
+	     int note_id=noteId;
+         for(ListItem item : list)
+         {
+        	 String content=item.getContent();
+             boolean checked=item.getChecked();
+		try {
+			App.database.executeUpdate("insert into list values('"+note_id+"',null,'"+content+"','"+((checked)?1:0)+"')");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         }
+	}
+          public Note[] fetchEntries()
+          {
+        	  int count=0;
+        	  Note[] note=null;
+        	  try {
+				App.database.execute("select * from notes");
+				note=new Note[App.database.getRowCount()];
+				ResultSet result=App.database.fetchResult();
+				while(result.next())
+				{
+					note[count]=new Note();
+					note[count].setId(result.getInt("id"));
+					note[count].setUserId(result.getInt("user_Id"));
+					note[count].setTitle(result.getString("title"));
+					note[count].setContent(result.getString("content"));
+					note[count].setType(result.getString("type"));
+					if(note[count].getType()=="list")
+					{
+						fetchList();
+					}
+					note[count].setTime(result.getDate("time"));
+					count++;
+					
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	  return note;
+          }
+          public ListItem[] fetchList()
+          {
+        	  int count=0;
+        	  ListItem[] item=null;
+        	  try {
+				App.database.execute("select * from list");
+				item=new ListItem[App.database.getRowCount()];
+				ResultSet result=App.database.fetchResult();
+				int noteId=0;
+				while(result.next())
+				{
+					item[count]=new ListItem();
+					noteId=result.getInt(1);
+					item[count].setListId(result.getInt("id"));
+					item[count].setContent(result.getString("content"));
+					item[count].setChecked(result.getBoolean("checked"));
+	                count++;			
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	  return item;
+        	  
+          }
+          public Note[] searchNote(String searchString)
+          {
+        	  int count=0;
+        	  Note[] note=null;
+        	  String[] splitted=searchString.split("\\s+");
+        	  String stringSearch="";
+        	  for(int i=0;i<splitted.length;i++)
+        	  {
+        		  if(i<splitted.length-1)
+        		  {
+        			  stringSearch += "title Like '%" + splitted[i] + "%' OR " +"content Like '%" + splitted[i] + "%' ";
+        		  }
+        		  if(i==splitted.length-1)
+        		  {
+        			  stringSearch += "title Like '%" + splitted[i] + "%' OR " +"content Like '%" + splitted[i] + "%'";
+        		  }
+        		  
+        		  }
+        	  
+        	  try {
+				App.database.execute("select * from notes where " + stringSearch);
+				note=new Note[App.database.getRowCount()];
+				ResultSet result=App.database.fetchResult();
+				while(result.next())
+				{
+					note[count]=new Note();
+					note[count].setId(result.getInt("id"));
+					note[count].setUserId(result.getInt("user_Id"));
+					note[count].setTitle(result.getString("title"));
+					note[count].setContent(result.getString("content"));
+					note[count].setType(result.getString("type"));
+					if(note[count].getType()=="list")
+					{
+						searchList(searchString);
+					}
+					note[count].setTime(result.getDate("time"));
+					count++;
+					
+				}
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	  return note;
+          }
+          public ListItem[] searchList(String searchString)
+          {
+        	  int count=0;
+        	 ListItem[] item=null;
+        	  String[] splitted=searchString.split("\\s+");
+        	  String stringSearch="";
+        	  for(int i=0;i<splitted.length;i++)
+        	  {
+        		  if(i<splitted.length-1)
+        		  {
+        			stringSearch += "title Like '%" + splitted[i] + "%' OR " + "content Like '%" + splitted[i] + "%' ";
+        		  }
+        		  if(i==splitted.length-1)
+        		  {
+        			  stringSearch +=  "title Like '%" + splitted[i] + "%' OR " +"content Like '%" + splitted[i] + "%' ";
+        		  }
+        		  
+        		  }
+        	  try {
+  				App.database.execute("select * from list where "+ stringSearch);
+  				item=new ListItem[App.database.getRowCount()];
+  				ResultSet result=App.database.fetchResult();
+  				int noteId=0;
+  				while(result.next())
+  				{
+  					item[count]=new ListItem();
+  					noteId=result.getInt(1);
+  					item[count].setListId(result.getInt("id"));
+  					item[count].setContent(result.getString("content"));
+  					item[count].setChecked(result.getBoolean("checked"));
+  	                count++;			
+  				}
+  			} catch (SQLException e) {
+  				// TODO Auto-generated catch block
+  				e.printStackTrace();
+  			}
+          	  return item;
+          	  
+            }
+          
+    
+          public void DeleteNote(int d_id)
+          {
+        	  try {
+				App.database.executeUpdate("delete * from notes where id=d_id");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+          }
+	
+	public static void main(String[] args)
+	{
+		NotesModel n = new NotesModel();
+		/*Note n1=new Note();
+		ListItem[] n2=new ListItem[5];
+		n2[0] = new ListItem();
+		n2[0].setContent("a");
+		n2[1] = new ListItem();
+		n2[1].setContent("b");
+		n2[2] = new ListItem();
+		n2[2].setContent("c");
+		n2[3] = new ListItem();
+		n2[3].setContent("d");
+		n2[4] = new ListItem();
+		n2[4].setContent("e");
+		
+		
+		
+		n1.setContent("java");
+		n1.setUserId(1);
+		n1.setList(n2);*/
+		try {
+			App.database=new Database();
+		} catch (ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//n.insert(n1);
+		Note[] x=n.searchNote("hello");
+		for(int i=0;i<x.length;i++)
+		{
+		System.out.println(x[i].getId());
+		System.out.println(x[i].getUserId());
+		System.out.println(x[i].getTitle());
+		System.out.println(x[i].getContent());
+		System.out.println(x[i].getType());
+		System.out.println(x[i].getTime());
+		
+		
+		}
+		/*ListItem[] y=n.searchList("hello");
+		for(int j=0;j<y.length;j++)
+		{
+			//System.out.println(y[j].noteId());
+			System.out.println(y[j].getListId());
+			//System.out.println(y[j].getTitle());
+			System.out.println(y[j].getContent());
+			System.out.println(y[j].getChecked());
+				
+		}*/
+		//n.inserttnotes("database", "hello");
+		//n.DeleteNote(4);
+		
+	}
+
+}

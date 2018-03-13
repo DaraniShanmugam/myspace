@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="view.App"/>
+<fullyQualifiedTypeName name="lib.Database"/>
+<fullyQualifiedTypeName name="java.sql.ResultSet"/>
+<fullyQualifiedTypeName name="lib.ListItem"/>
+<fullyQualifiedTypeName name="controller.LoginController"/>
+<fullyQualifiedTypeName name="lib.AESEncryption"/>
+</qualifiedTypeNameHistroy>

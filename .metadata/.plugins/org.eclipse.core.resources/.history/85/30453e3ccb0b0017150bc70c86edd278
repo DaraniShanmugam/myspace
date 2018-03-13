@@ -1,0 +1,62 @@
+package lib;
+import java.util.*;
+import java.util.Date;
+public class Note {
+	private int id,userId;
+	private String content,title,type;
+	private Date time;
+	public Note()
+	{
+		id=0;
+		userId=0;
+		content=null;
+		title=null;
+		type=null;
+		time=null;
+		
+	}
+    public void setId(int id)	
+    {
+    	this.id=id;
+    }
+    public void setUserId(int user_id)
+    {
+    	this.userId=user_id;
+    }
+    public int getUserId()
+    {
+    	return userId;
+    }
+    public void setContent(String content)
+    {
+    	this.content=content;
+    }
+    public String getContent()
+    {
+    	return content;
+    }
+    public void setTitle(String title)
+    {
+    	this.title=title;
+    }
+    public String getTitle()
+    {
+    	return title;
+    }
+    public void setType(String type)
+    {
+    	this.type=type;
+    }
+    public String getType()
+    {
+    	return type;
+    }
+    public void SetTime(Date time)
+    {
+    	this.time=time;
+    }
+    public Date getTime()
+    {
+    	return time;
+    }
+}
